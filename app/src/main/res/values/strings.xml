@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name">BookCollection</string>
-    <string name="title_book_detail">Book Detail</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 
 </resources>
