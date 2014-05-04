@@ -12,8 +12,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-
+import com.x22.bookcollection.app.db.DatabaseHelper;
 import com.x22.bookcollection.app.dummy.DummyContent;
+import com.x22.bookcollection.app.model.Book;
 
 /**
  * A fragment representing a list of Items.
@@ -75,13 +76,12 @@ public class ItemFragment extends Fragment implements AbsListView.OnItemClickLis
         }
 
         // TODO: Change Adapter to display your content
-        mAdapter = new ArrayAdapter<DummyContent.DummyItem>(getActivity(),
-                R.layout.book_item, R.id.title, DummyContent.ITEMS);
+        DatabaseHelper dbHelper = new DatabaseHelper(getActivity().getApplicationContext());
+        mAdapter = new ArrayAdapter<Book>(getActivity(), R.layout.book_item, R.id.title, dbHelper.getAllBooks());
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_item, container, false);
 
         // Set the adapter
@@ -100,8 +100,7 @@ public class ItemFragment extends Fragment implements AbsListView.OnItemClickLis
         try {
             mListener = (OnFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                + " must implement OnFragmentInteractionListener");
+            throw new ClassCastException(activity.toString() + " must implement OnFragmentInteractionListener");
         }
     }
 
