@@ -18,14 +18,14 @@
 
     <!-- Artist Name -->
     <TextView
-        android:id="@+id/artist"
+        android:id="@+id/author"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:textColor="#343434"
         android:textSize="10dip"
         android:layout_marginTop="1dip"
-        android:text="Just gona stand there and ..." />
+        android:text="@+id/author" />
 
     <!-- Rightend Duration -->
     <TextView

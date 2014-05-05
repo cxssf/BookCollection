@@ -1,14 +1,12 @@
 package com.x22.bookcollection.app;
 
-import android.accounts.AccountManager;
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.x22.bookcollection.app.db.DatabaseHelper;
-import com.x22.bookcollection.app.model.Book;
+import com.x22.bookcollection.app.model.BookItem;
 
 
 public class MainActivity extends FragmentActivity implements ItemFragment.OnFragmentInteractionListener {
@@ -20,10 +18,11 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnFra
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Book book1 = new Book("The Target", "David Baldacci");
-        Book book2 = new Book("King & Maxwell", "David Baldacci");
+        BookItem book1 = new BookItem("The Target", "David Baldacci");
+        BookItem book2 = new BookItem("King & Maxwell", "David Baldacci");
 
         dbHelper = new DatabaseHelper(getApplicationContext());
+        dbHelper.deleteAllBooks();
         dbHelper.createBook(book1);
         dbHelper.createBook(book2);
 

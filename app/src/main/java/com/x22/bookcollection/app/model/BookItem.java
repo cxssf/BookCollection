@@ -1,19 +1,19 @@
 package com.x22.bookcollection.app.model;
 
-public class Book {
+public class BookItem {
     private int id;
     private String title;
     private String author;
 
-    public Book() {
+    public BookItem() {
 
     }
 
-    public Book(String title, String author) {
+    public BookItem(String title, String author) {
         this(-1, title, author);
     }
 
-    public Book(int id, String title, String author) {
+    public BookItem(int id, String title, String author) {
         this.id = id;
         this.title = title;
         this.author = author;

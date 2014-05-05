@@ -13,8 +13,9 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.x22.bookcollection.app.db.DatabaseHelper;
-import com.x22.bookcollection.app.dummy.DummyContent;
-import com.x22.bookcollection.app.model.Book;
+import com.x22.bookcollection.app.model.BookItem;
+
+import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -26,15 +27,7 @@ import com.x22.bookcollection.app.model.Book;
  * interface.
  */
 public class ItemFragment extends Fragment implements AbsListView.OnItemClickListener {
-
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private List<BookItem> allBooks;
 
     private OnFragmentInteractionListener mListener;
 
@@ -53,8 +46,7 @@ public class ItemFragment extends Fragment implements AbsListView.OnItemClickLis
     public static ItemFragment newInstance(String param1, String param2) {
         ItemFragment fragment = new ItemFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        //args.putString(ARG_PARAM1, param1);
         fragment.setArguments(args);
         return fragment;
     }
@@ -64,20 +56,21 @@ public class ItemFragment extends Fragment implements AbsListView.OnItemClickLis
      * fragment (e.g. upon screen orientation changes).
      */
     public ItemFragment() {
+
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
+        /*if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+        }*/
 
-        // TODO: Change Adapter to display your content
         DatabaseHelper dbHelper = new DatabaseHelper(getActivity().getApplicationContext());
-        mAdapter = new ArrayAdapter<Book>(getActivity(), R.layout.book_item, R.id.title, dbHelper.getAllBooks());
+        allBooks = dbHelper.getAllBooks();
+        mAdapter = new BookAdapter(getActivity().getApplicationContext(), R.layout.book_item, allBooks);
     }
 
     @Override
@@ -116,7 +109,7 @@ public class ItemFragment extends Fragment implements AbsListView.OnItemClickLis
         if (null != mListener) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
+            //mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
         }
     }
 

@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 
-import com.x22.bookcollection.app.model.Book;
+import com.x22.bookcollection.app.model.BookItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,32 +50,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         public static final String COLUMN_NAME_AUTHOR = "author";
     }
 
-    public long createBook(Book book) {
+    public long createBook(BookItem bookItem) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(BookEntry.COLUMN_NAME_TITLE, book.getTitle());
-        values.put(BookEntry.COLUMN_NAME_AUTHOR, book.getAuthor());
+        values.put(BookEntry.COLUMN_NAME_TITLE, bookItem.getTitle());
+        values.put(BookEntry.COLUMN_NAME_AUTHOR, bookItem.getAuthor());
 
         return db.insert(BookEntry.TABLE_NAME, null, values);
     }
 
-    public List<Book> getAllBooks() {
-        List<Book> books = new ArrayList<Book>();
+    public List<BookItem> getAllBooks() {
+        List<BookItem> books = new ArrayList<BookItem>();
 
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + BookEntry.TABLE_NAME, null);
+        //Cursor cursor = db.rawQuery("SELECT * FROM " + BookEntry.TABLE_NAME, null);
+
+        String[] columns = {
+                BookEntry._ID,
+                BookEntry.COLUMN_NAME_TITLE,
+                BookEntry.COLUMN_NAME_AUTHOR
+        };
+
+        String sortOrder = BookEntry.COLUMN_NAME_TITLE + " ASC";
+
+        Cursor cursor = db.query(BookEntry.TABLE_NAME, columns, null, null, null, null, null);
 
         if(cursor.moveToFirst()) {
             do {
-                Book book = new Book();
-                book.setId(cursor.getInt(cursor.getColumnIndex(BookEntry._ID)));
-                book.setTitle(cursor.getString(cursor.getColumnIndex(BookEntry.COLUMN_NAME_TITLE)));
-                book.setAuthor(cursor.getString(cursor.getColumnIndex(BookEntry.COLUMN_NAME_AUTHOR)));
+                BookItem bookItem = new BookItem();
+                bookItem.setId(cursor.getInt(cursor.getColumnIndex(BookEntry._ID)));
+                bookItem.setTitle(cursor.getString(cursor.getColumnIndex(BookEntry.COLUMN_NAME_TITLE)));
+                bookItem.setAuthor(cursor.getString(cursor.getColumnIndex(BookEntry.COLUMN_NAME_AUTHOR)));
 
-                books.add(book);
+                books.add(bookItem);
             } while(cursor.moveToNext());
         }
+
+        db.close();
 
         return books;
     }
@@ -83,6 +95,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void deleteAllBooks() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(BookEntry.TABLE_NAME, null, null);
+        db.close();
     }
 
     public void closeDb() {
