@@ -2,9 +2,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.x22.bookcollection.app.MainActivity" >
 
-    <item android:id="@+id/action_accept"
+    <item android:id="@+id/action_scan"
         android:icon="@drawable/ic_action_accept"
-        android:title="@string/action_accept"
+        android:title="@string/action_scan"
         android:showAsAction="ifRoom" />
     <!-- Settings, should always be in the overflow -->
     <item android:id="@+id/action_settings"

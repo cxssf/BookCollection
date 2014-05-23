@@ -20,8 +20,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "CREATE TABLE " + BookEntry.TABLE_NAME + " (" +
                     BookEntry._ID + " INTEGER PRIMARY KEY," +
                     BookEntry.COLUMN_NAME_TITLE + " TEXT," +
-                    BookEntry.COLUMN_NAME_AUTHOR  + " TEXT" +
-            ")";
+                    BookEntry.COLUMN_NAME_AUTHOR + " TEXT" +
+                    ")";
 
     private static final String DELETE_TABLE_BOOKS = "DROP TABLE IF EXISTS " + BookEntry.TABLE_NAME;
 
@@ -76,7 +76,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         Cursor cursor = db.query(BookEntry.TABLE_NAME, columns, null, null, null, null, null);
 
-        if(cursor.moveToFirst()) {
+        if (cursor.moveToFirst()) {
             do {
                 BookItem bookItem = new BookItem();
                 bookItem.setId(cursor.getInt(cursor.getColumnIndex(BookEntry._ID)));
@@ -84,7 +84,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 bookItem.setAuthor(cursor.getString(cursor.getColumnIndex(BookEntry.COLUMN_NAME_AUTHOR)));
 
                 books.add(bookItem);
-            } while(cursor.moveToNext());
+            } while (cursor.moveToNext());
         }
 
         db.close();

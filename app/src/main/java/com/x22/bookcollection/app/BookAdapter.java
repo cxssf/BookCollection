@@ -30,8 +30,8 @@ public class BookAdapter extends ArrayAdapter<BookItem> {
         View row = convertView;
         BookItemHolder holder = null;
 
-        if(row == null) {
-            LayoutInflater inflater = (LayoutInflater) context .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        if (row == null) {
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
             row = inflater.inflate(layoutResourceId, parent, false);
 
             holder = new BookItemHolder();
@@ -49,6 +49,12 @@ public class BookAdapter extends ArrayAdapter<BookItem> {
 
         return row;
     }
+
+    /*public void updateBookList(List<BookItem> newlist) {
+        receiptlist.clear();
+        receiptlist.addAll(newlist);
+        this.notifyDataSetChanged();
+    }*/
 
     private static class BookItemHolder {
         TextView title;
