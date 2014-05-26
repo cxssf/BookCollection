@@ -1,7 +1,10 @@
 package com.x22.bookcollection.app;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -26,21 +29,28 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
 
 
 public class MainActivity extends FragmentActivity implements ItemFragment.OnFragmentInteractionListener {
 
     private DatabaseHelper dbHelper;
+    private ConnectivityManager mConnectivityManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        dbHelper = new DatabaseHelper(getApplicationContext());
-        dbHelper.deleteAllBooks();
+        //dbHelper = new DatabaseHelper(getApplicationContext());
+        //dbHelper.deleteAllBooks();
 
         /*BookItem book1 = new BookItem("The Target", "David Baldacci");
         BookItem book2 = new BookItem("King & Maxwell", "David Baldacci");
@@ -99,8 +109,8 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnFra
             String scanFormat = scanningResult.getFormatName();
 
             if (scanContent != null && scanFormat != null && scanFormat.equalsIgnoreCase("EAN_13")) {
-                String bookSearchString = "https://www.googleapis.com/books/v1/volumes?q=isbn:" + scanContent;
-                new GetBookInfo().execute(bookSearchString);
+
+                new GetBookInfo().execute(scanContent);
 
             } else {
                 Log.i("MainActivity", "R.string.scan_failed");
@@ -126,7 +136,145 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnFra
         return builder.create();
     }
 
-    private class GetBookInfo extends AsyncTask<String, Void, String> {
+    class GetBookInfo extends AsyncTask<String, Object, JSONObject>{
+
+        @Override
+        protected void onPreExecute() {
+            // Check network connection.
+            if(isNetworkConnected() == false){
+                // Cancel request.
+                Log.i(getClass().getName(), "Not connected to the internet");
+                cancel(true);
+                return;
+            }
+        }
+        @Override
+        protected JSONObject doInBackground(String... isbns) {
+            // Stop if cancelled
+            if(isCancelled()){
+                return null;
+            }
+
+            Log.w(getClass().getName(), "ISBNS: "+ isbns);
+
+            String apiUrlString = "https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbns[0];
+            try{
+                HttpURLConnection connection = null;
+                // Build Connection.
+                try{
+                    URL url = new URL(apiUrlString);
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setReadTimeout(5000); // 5 seconds
+                    connection.setConnectTimeout(5000); // 5 seconds
+                } catch (MalformedURLException e) {
+                    // Impossible: The only two URLs used in the app are taken from string resources.
+                    e.printStackTrace();
+                } catch (ProtocolException e) {
+                    // Impossible: "GET" is a perfectly valid request method.
+                    e.printStackTrace();
+                }
+                int responseCode = connection.getResponseCode();
+                if(responseCode != 200){
+                    Log.w(getClass().getName(), "GoogleBooksAPI request failed. Response Code: " + responseCode);
+                    connection.disconnect();
+                    return null;
+                }
+
+                // Read data from response.
+                StringBuilder builder = new StringBuilder();
+                BufferedReader responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String line = responseReader.readLine();
+                while (line != null){
+                    builder.append(line);
+                    line = responseReader.readLine();
+                }
+                String responseString = builder.toString();
+                Log.d(getClass().getName(), "Response String: " + responseString);
+                JSONObject responseJson = new JSONObject(responseString);
+                // Close connection and return response code.
+                connection.disconnect();
+                return responseJson;
+            } catch (SocketTimeoutException e) {
+                Log.w(getClass().getName(), "Connection timed out. Returning null");
+                return null;
+            } catch(IOException e){
+                Log.d(getClass().getName(), "IOException when connecting to Google Books API.");
+                e.printStackTrace();
+                return null;
+            } catch (JSONException e) {
+                Log.d(getClass().getName(), "JSONException when connecting to Google Books API.");
+                e.printStackTrace();
+                return null;
+            }
+        }
+        @Override
+        protected void onPostExecute(JSONObject responseJson) {
+            if(isCancelled()){
+                // Request was cancelled due to no network connection.
+                //showNetworkDialog();
+                createDialog(R.string.no_network);
+            } else if(responseJson == null){
+                //showSimpleDialog(getResources().getString(R.string.dialog_null_response));
+                createDialog(R.string.no_result);
+            }
+            else{
+                dbHelper = new DatabaseHelper(getApplicationContext());
+
+                try {
+                    Log.i("MainActivity", "Result: " + responseJson.toString());
+
+                    JSONArray bookArray = responseJson.getJSONArray("items");
+                    JSONObject bookObject = bookArray.getJSONObject(0);
+                    JSONObject volumeObject = bookObject.getJSONObject("volumeInfo");
+
+                    BookItem book = new BookItem();
+
+                    try {
+                        book.setTitle(volumeObject.getString("title"));
+                    } catch (JSONException jse) {
+                        jse.printStackTrace();
+                    }
+
+                    StringBuilder authorBuild = new StringBuilder("");
+                    try {
+                        JSONArray authorArray = volumeObject.getJSONArray("authors");
+                        for (int a = 0; a < authorArray.length(); a++) {
+                            if (a > 0) authorBuild.append(", ");
+                            authorBuild.append(authorArray.getString(a));
+                        }
+                        book.setAuthor(authorBuild.toString());
+                    } catch (JSONException jse) {
+                        jse.printStackTrace();
+                    }
+
+                    dbHelper.createBook(book);
+                } catch (Exception e) {
+                    //no result
+                    e.printStackTrace();
+                }
+
+                dbHelper.closeDb();
+            }
+        }
+    }
+
+    protected boolean isNetworkConnected(){
+
+        // Instantiate mConnectivityManager if necessary
+        if(mConnectivityManager == null){
+            mConnectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        }
+        // Is device connected to the Internet?
+        NetworkInfo networkInfo = mConnectivityManager.getActiveNetworkInfo();
+        if(networkInfo != null && networkInfo.isConnected()){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /*private class GetBookInfo extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... bookURLs) {
             StringBuilder bookBuilder = new StringBuilder();
@@ -218,11 +366,11 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnFra
 
             ItemFragment fragment = (ItemFragment) getSupportFragmentManager().findFragmentByTag("com.x22.bookcollection.app.ItemFragment");
             Log.i("MainActivity", "Fragment2: " + (fragment == null));
-            fragment.updateListview();*/
+            fragment.updateListview();
 
             //(BaseAdapter) mMyListView.getAdapter()).notifyDataSetChanged();
         }
-    }
+    }*/
 
     /*private class GetBookInfo extends AsyncTask<String, Void, String> {
         @Override

@@ -8,5 +8,6 @@
     <string name="scan_failed">No book scan data received</string>
     <string name="scan_not_valid">Not a valid scan, should be EAN 13 barcode</string>
     <string name="no_result">NO RESULT FOUND!</string>
+    <string name="no_network">No network connection"></string>
 
 </resources>
