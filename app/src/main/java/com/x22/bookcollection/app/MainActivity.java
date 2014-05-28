@@ -7,7 +7,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -18,19 +17,12 @@ import com.google.zxing.integration.android.IntentResult;
 import com.x22.bookcollection.app.db.DatabaseHelper;
 import com.x22.bookcollection.app.model.BookItem;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -136,32 +128,31 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnFra
         return builder.create();
     }
 
-    class GetBookInfo extends AsyncTask<String, Object, JSONObject>{
+    class GetBookInfo extends AsyncTask<String, Object, JSONObject> {
 
         @Override
         protected void onPreExecute() {
-            // Check network connection.
-            if(isNetworkConnected() == false){
-                // Cancel request.
+            if (isNetworkConnected() == false) { // Check network connection.
                 Log.i(getClass().getName(), "Not connected to the internet");
-                cancel(true);
+                cancel(true); // Cancel request.
+
                 return;
             }
         }
+
         @Override
         protected JSONObject doInBackground(String... isbns) {
             // Stop if cancelled
-            if(isCancelled()){
+            if (isCancelled()) {
                 return null;
             }
 
-            Log.w(getClass().getName(), "ISBNS: "+ isbns);
+            Log.w(getClass().getName(), "ISBNS: " + isbns);
 
             String apiUrlString = "https://www.googleapis.com/books/v1/volumes?q=isbn:" + isbns[0];
-            try{
+            try {
                 HttpURLConnection connection = null;
-                // Build Connection.
-                try{
+                try { // Build Connection.
                     URL url = new URL(apiUrlString);
                     connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("GET");
@@ -174,8 +165,9 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnFra
                     // Impossible: "GET" is a perfectly valid request method.
                     e.printStackTrace();
                 }
+
                 int responseCode = connection.getResponseCode();
-                if(responseCode != 200){
+                if (responseCode != 200) {
                     Log.w(getClass().getName(), "GoogleBooksAPI request failed. Response Code: " + responseCode);
                     connection.disconnect();
                     return null;
@@ -185,40 +177,41 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnFra
                 StringBuilder builder = new StringBuilder();
                 BufferedReader responseReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 String line = responseReader.readLine();
-                while (line != null){
+                while (line != null) {
                     builder.append(line);
                     line = responseReader.readLine();
                 }
+
                 String responseString = builder.toString();
                 Log.d(getClass().getName(), "Response String: " + responseString);
                 JSONObject responseJson = new JSONObject(responseString);
                 // Close connection and return response code.
                 connection.disconnect();
+
                 return responseJson;
             } catch (SocketTimeoutException e) {
                 Log.w(getClass().getName(), "Connection timed out. Returning null");
-                return null;
-            } catch(IOException e){
+            } catch (IOException e) {
                 Log.d(getClass().getName(), "IOException when connecting to Google Books API.");
                 e.printStackTrace();
-                return null;
             } catch (JSONException e) {
                 Log.d(getClass().getName(), "JSONException when connecting to Google Books API.");
                 e.printStackTrace();
-                return null;
             }
+
+            return null;
         }
+
         @Override
         protected void onPostExecute(JSONObject responseJson) {
-            if(isCancelled()){
+            if (isCancelled()) {
                 // Request was cancelled due to no network connection.
                 //showNetworkDialog();
                 createDialog(R.string.no_network);
-            } else if(responseJson == null){
+            } else if (responseJson == null) {
                 //showSimpleDialog(getResources().getString(R.string.dialog_null_response));
                 createDialog(R.string.no_result);
-            }
-            else{
+            } else {
                 dbHelper = new DatabaseHelper(getApplicationContext());
 
                 try {
@@ -259,19 +252,14 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnFra
         }
     }
 
-    protected boolean isNetworkConnected(){
-
+    protected boolean isNetworkConnected() {
         // Instantiate mConnectivityManager if necessary
-        if(mConnectivityManager == null){
+        if (mConnectivityManager == null) {
             mConnectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         }
         // Is device connected to the Internet?
         NetworkInfo networkInfo = mConnectivityManager.getActiveNetworkInfo();
-        if(networkInfo != null && networkInfo.isConnected()){
-            return true;
-        } else {
-            return false;
-        }
+        return networkInfo != null && networkInfo.isConnected();
     }
 
     /*private class GetBookInfo extends AsyncTask<String, Void, String> {
