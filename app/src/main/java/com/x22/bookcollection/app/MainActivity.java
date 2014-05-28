@@ -11,7 +11,9 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
+import com.google.android.gms.common.SignInButton;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.x22.bookcollection.app.db.DatabaseHelper;
@@ -35,6 +37,10 @@ public class MainActivity extends FragmentActivity implements ItemFragment.OnFra
 
     private DatabaseHelper dbHelper;
     private ConnectivityManager mConnectivityManager;
+
+    private View mProgressView;
+    private SignInButton mPlusSignInButton;
+    private View mSignOutButtons;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
